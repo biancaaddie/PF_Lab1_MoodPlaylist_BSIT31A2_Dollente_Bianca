@@ -1,0 +1,167 @@
+@model MoodPlaylistGenerator.ViewModels.GeneratePlaylistViewModel
+@{
+    ViewData["Title"] = "Generate Playlist";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>🎧 Generate New Playlist</h2>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Playlists
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Generate" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                    
+                    <div class="mb-4">
+                        <label asp-for="SelectedMoodId" class="form-label">Select Mood *</label>
+                        <div class="form-text mb-3">Choose the mood for your playlist. Songs will be randomly selected from this mood.</div>
+                        <div class="row">
+                            @foreach (var mood in Model.AvailableMoods)
+                            {
+                                var songCount = Model.MoodSongCounts.ContainsKey(mood.Id) ? Model.MoodSongCounts[mood.Id] : 0;
+                                var isDisabled = songCount == 0;
+                                
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" 
+                                               name="SelectedMoodId" value="@mood.Id" 
+                                               id="mood_@mood.Id"
+                                               @(Model.SelectedMoodId == mood.Id ? "checked" : "")
+                                               @(isDisabled ? "disabled" : "")>
+                                        <label class="form-check-label w-100" for="mood_@mood.Id">
+                                            <div class="card @(isDisabled ? "bg-light" : "")" 
+                                                 style="@(isDisabled ? "opacity: 0.6;" : "cursor: pointer;")">
+                                                <div class="card-body text-center">
+                                                    <div class="mb-2">
+                                                        <span class="badge rounded-pill fs-6" 
+                                                              style="background-color: @mood.Color; color: white;">
+                                                            @mood.Name
+                                                        </span>
+                                                    </div>
+                                                    <small class="text-muted">
+                                                        @songCount song@(songCount == 1 ? "" : "s") available
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <span asp-validation-for="SelectedMoodId" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="SongCount" class="form-label">Number of Songs *</label>
+                                <input asp-for="SongCount" class="form-control" type="number" min="1" max="50">
+                                <div class="form-text">Choose between 1 and 50 songs for your playlist</div>
+                                <span asp-validation-for="SongCount" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="PlaylistName" class="form-label">Playlist Name (Optional)</label>
+                                <input asp-for="PlaylistName" class="form-control" placeholder="My awesome playlist">
+                                <div class="form-text">Leave empty for auto-generated name</div>
+                                <span asp-validation-for="PlaylistName" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-magic"></i> Generate Playlist
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">💡 Tips</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-lightbulb text-warning"></i>
+                        <strong>Random Selection:</strong> Songs are randomly picked from your selected mood
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-shuffle text-info"></i>
+                        <strong>Variety:</strong> Each generated playlist will be different
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-edit text-success"></i>
+                        <strong>Customizable:</strong> You can rename playlists after creation
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-plus text-primary"></i>
+                        <strong>Need more songs?</strong> Add more songs to your library first
+                    </li>
+                </ul>
+                
+                <div class="mt-4">
+                    <h6>Your Song Library</h6>
+                    @if (Model.MoodSongCounts.Any())
+                    {
+                        @foreach (var moodCount in Model.MoodSongCounts.OrderByDescending(mc => mc.Value))
+                        {
+                            var mood = Model.AvailableMoods.FirstOrDefault(m => m.Id == moodCount.Key);
+                            if (mood != null)
+                            {
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small>
+                                        <span class="badge badge-sm rounded-pill" 
+                                              style="background-color: @mood.Color; color: white; font-size: 0.7em;">
+                                            @mood.Name
+                                        </span>
+                                    </small>
+                                    <small class="text-muted">@moodCount.Value songs</small>
+                                </div>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <small class="text-muted">No songs in your library yet.</small>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <h6>Need More Songs?</h6>
+                <p class="text-muted small">Add more songs to create better playlists</p>
+                <a href="@Url.Action("Create", "Songs")" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-plus"></i> Add Songs
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Auto-select mood when clicking on card
+        document.querySelectorAll('.form-check-label .card').forEach(function(card) {
+            card.addEventListener('click', function() {
+                const radio = card.closest('.form-check').querySelector('input[type="radio"]');
+                if (!radio.disabled) {
+                    radio.checked = true;
+                }
+            });
+        });
+    </script>
+}
