@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using MoodPlaylistGenerator.Models;
+using MoodPlaylist.SQLite.Repository.Models;
 
-namespace MoodPlaylistGenerator.Data
+namespace MoodPlaylist.SQLite.Repository
 {
     public class ApplicationDbContext : DbContext
     {

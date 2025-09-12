@@ -1,4 +1,4 @@
-namespace MoodPlaylistGenerator.Models
+namespace MoodPlaylist.SQLite.Repository.Models
 {
     public class PlaylistSong
     {

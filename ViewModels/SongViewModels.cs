@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using MoodPlaylistGenerator.Models;
+using MoodPlaylist.SQLite.Repository.Models;
 
 namespace MoodPlaylistGenerator.ViewModels
 {

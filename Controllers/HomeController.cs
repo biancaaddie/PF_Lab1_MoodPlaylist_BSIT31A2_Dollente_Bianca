@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using MoodPlaylistGenerator.Models;
-using MoodPlaylistGenerator.Services;
+using MoodPlaylist.SQLite.Services;
 using MoodPlaylistGenerator.ViewModels;
 
 namespace MoodPlaylistGenerator.Controllers;
