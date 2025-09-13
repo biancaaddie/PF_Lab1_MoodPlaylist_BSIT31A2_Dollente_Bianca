@@ -1,15 +1,20 @@
 using Microsoft.EntityFrameworkCore;
-using MoodPlaylist.SQLite.Repository;
-using MoodPlaylist.SQLite.Repository.Models;
+using MoodPlaylistGenerator.Data;
+using MoodPlaylistGenerator.Data.Entities;
+using MoodPlaylistGenerator.Services.Interfaces;
 using BCrypt.Net;
 
-namespace MoodPlaylist.SQLite.Services
+namespace MoodPlaylistGenerator.Services.Implementations
 {
-    public class AuthService
+    /// <summary>
+    /// SQLite implementation of IAuthService using Entity Framework Code-First approach.
+    /// This implementation persists user data to a SQLite database.
+    /// </summary>
+    public class SQLiteAuthService : IAuthService
     {
         private readonly ApplicationDbContext _context;
 
-        public AuthService(ApplicationDbContext context)
+        public SQLiteAuthService(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -19,7 +24,7 @@ namespace MoodPlaylist.SQLite.Services
             // Check if user exists
             var existingUser = await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == email || u.Username == username);
-            
+
             if (existingUser != null)
                 return null;
 
@@ -68,7 +73,7 @@ namespace MoodPlaylist.SQLite.Services
             await _context.SaveChangesAsync();
 
             // In a real app, send email here
-            // For now, just return true
+            Console.WriteLine($"Password reset token for {email}: {user.ResetToken}");
             return true;
         }
 

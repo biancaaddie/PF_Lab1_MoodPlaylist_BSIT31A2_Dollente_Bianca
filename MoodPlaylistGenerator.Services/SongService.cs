@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using MoodPlaylist.SQLite.Repository;
-using MoodPlaylist.SQLite.Repository.Models;
+using MoodPlaylistGenerator.Data;
+using MoodPlaylistGenerator.Data.Entities;
 
-namespace MoodPlaylist.SQLite.Services
+namespace MoodPlaylistGenerator.Services
 {
     public class SongService
     {
