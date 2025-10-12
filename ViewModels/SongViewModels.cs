@@ -1,6 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using MoodPlaylistGenerator.Data.Entities;
 
+using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
+using MoodPlaylistGenerator.Data.Entities;
+
 namespace MoodPlaylistGenerator.ViewModels
 {
     public class CreateSongViewModel
@@ -13,10 +17,12 @@ namespace MoodPlaylistGenerator.ViewModels
         [StringLength(200)]
         public string Artist { get; set; } = string.Empty;
 
-        [Required]
         [Url]
-        [Display(Name = "YouTube URL")]
-        public string YouTubeUrl { get; set; } = string.Empty;
+        [Display(Name = "YouTube URL (optional)")]
+        public string? YouTubeUrl { get; set; }
+
+        [Display(Name = "Local media (audio/video)")]
+        public IFormFile? MediaFile { get; set; }
 
         [Display(Name = "Moods")]
         public List<int> SelectedMoodIds { get; set; } = new();
@@ -36,10 +42,12 @@ namespace MoodPlaylistGenerator.ViewModels
         [StringLength(200)]
         public string Artist { get; set; } = string.Empty;
 
-        [Required]
         [Url]
-        [Display(Name = "YouTube URL")]
-        public string YouTubeUrl { get; set; } = string.Empty;
+        [Display(Name = "YouTube URL (optional)")]
+        public string? YouTubeUrl { get; set; }
+
+        [Display(Name = "Replace local media (audio/video)")]
+        public IFormFile? MediaFile { get; set; }
 
         [Display(Name = "Moods")]
         public List<int> SelectedMoodIds { get; set; } = new();
@@ -60,5 +68,9 @@ namespace MoodPlaylistGenerator.ViewModels
         public Song Song { get; set; } = null!;
         public string YouTubeVideoId { get; set; } = string.Empty;
         public List<Mood> AssignedMoods { get; set; } = new();
+        public string? LocalMediaUrl { get; set; }
+        public bool IsVideo { get; set; }
+        public string FallbackYouTubeUrl { get; set; } = string.Empty;
+        public bool FileExists { get; set; }
     }
 }

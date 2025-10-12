@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using MoodPlaylistGenerator.Services.Interfaces;
 using MoodPlaylistGenerator.Services;
 using MoodPlaylistGenerator.Data;
 

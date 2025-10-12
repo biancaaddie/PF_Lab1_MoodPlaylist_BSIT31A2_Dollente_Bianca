@@ -10,10 +10,12 @@ namespace MoodPlaylistGenerator.Controllers
     public class SongsController : Controller
     {
         private readonly SongService _songService;
+        private readonly IMediaUploadService _mediaUploadService;
 
-        public SongsController(SongService songService)
+        public SongsController(SongService songService, IMediaUploadService mediaUploadService)
         {
             _songService = songService;
+            _mediaUploadService = mediaUploadService;
         }
 
         private int GetCurrentUserId()
@@ -61,11 +63,26 @@ namespace MoodPlaylistGenerator.Controllers
             if (song == null)
                 return NotFound();
 
+            string? localUrl = null;
+            bool isVideo = false;
+            bool fileExists = false;
+            
+            if (!string.IsNullOrWhiteSpace(song.LocalFilePath) && _mediaUploadService.FileExists(song.LocalFilePath))
+            {
+                localUrl = _mediaUploadService.GetMediaUrl(song.LocalFilePath!);
+                fileExists = true;
+                isVideo = song.MediaType == MoodPlaylistGenerator.Data.Entities.MediaType.LocalVideo;
+            }
+
             var viewModel = new SongDetailViewModel
             {
                 Song = song,
-                YouTubeVideoId = _songService.ExtractYouTubeVideoId(song.YouTubeUrl),
-                AssignedMoods = song.SongMoods.Select(sm => sm.Mood).ToList()
+                YouTubeVideoId = string.IsNullOrWhiteSpace(song.YouTubeUrl) ? "" : _songService.ExtractYouTubeVideoId(song.YouTubeUrl!),
+                AssignedMoods = song.SongMoods.Select(sm => sm.Mood).ToList(),
+                LocalMediaUrl = localUrl,
+                IsVideo = isVideo,
+                FallbackYouTubeUrl = _mediaUploadService.GetFallbackYouTubeUrl(),
+                FileExists = fileExists
             };
 
             return View(viewModel);
@@ -95,12 +112,45 @@ namespace MoodPlaylistGenerator.Controllers
             
             try
             {
+                string? savedPath = null;
+                string? savedName = null;
+
+                if (model.MediaFile != null && model.MediaFile.Length > 0)
+                {
+                    if (!_mediaUploadService.IsValidMediaFile(model.MediaFile))
+                    {
+                        ModelState.AddModelError("MediaFile", "Unsupported file type or too large. Accepts audio/video only.");
+                        model.AvailableMoods = await _songService.GetAllMoodsAsync();
+                        return View(model);
+                    }
+
+                    var result = await _mediaUploadService.SaveMediaFileAsync(model.MediaFile, userId);
+                    savedPath = result.filePath;
+                    savedName = result.fileName;
+                }
+
+                // Prefer local media if uploaded; YouTubeUrl is optional
                 await _songService.CreateSongAsync(
-                    model.Title, 
-                    model.Artist, 
-                    model.YouTubeUrl, 
-                    userId, 
-                    model.SelectedMoodIds);
+                    model.Title,
+                    model.Artist,
+                    model.YouTubeUrl ?? string.Empty,
+                    userId,
+                    model.SelectedMoodIds
+                );
+
+                // If we saved a media file, attach it to the created song
+                // Reload the last created song by this user (simplest approach here)
+                var songs = await _songService.GetUserSongsAsync(userId);
+                var created = songs.FirstOrDefault(s => s.Title == model.Title && s.Artist == model.Artist);
+                if (created != null && savedPath != null)
+                {
+                    created.LocalFilePath = savedPath;
+                    created.FileName = savedName;
+                    created.ContentType = model.MediaFile!.ContentType;
+                    created.FileSizeBytes = model.MediaFile.Length;
+                    created.MediaType = _mediaUploadService.DetermineMediaType(model.MediaFile.ContentType);
+                    await HttpContext.RequestServices.GetRequiredService<MoodPlaylistGenerator.Data.ApplicationDbContext>().SaveChangesAsync();
+                }
 
                 TempData["SuccessMessage"] = "Song added successfully!";
                 return RedirectToAction(nameof(Index));
@@ -153,11 +203,30 @@ namespace MoodPlaylistGenerator.Controllers
                     userId, 
                     model.Title, 
                     model.Artist, 
-                    model.YouTubeUrl, 
+                    model.YouTubeUrl ?? string.Empty, 
                     model.SelectedMoodIds);
 
                 if (updatedSong == null)
                     return NotFound();
+
+                // Handle optional media replacement
+                if (model.MediaFile != null && model.MediaFile.Length > 0)
+                {
+                    if (!_mediaUploadService.IsValidMediaFile(model.MediaFile))
+                    {
+                        ModelState.AddModelError("MediaFile", "Unsupported file type or too large. Accepts audio/video only.");
+                        model.AvailableMoods = await _songService.GetAllMoodsAsync();
+                        return View(model);
+                    }
+
+                    var result = await _mediaUploadService.SaveMediaFileAsync(model.MediaFile, userId);
+                    updatedSong.LocalFilePath = result.filePath;
+                    updatedSong.FileName = result.fileName;
+                    updatedSong.ContentType = model.MediaFile.ContentType;
+                    updatedSong.FileSizeBytes = model.MediaFile.Length;
+                    updatedSong.MediaType = _mediaUploadService.DetermineMediaType(model.MediaFile.ContentType);
+                    await HttpContext.RequestServices.GetRequiredService<MoodPlaylistGenerator.Data.ApplicationDbContext>().SaveChangesAsync();
+                }
 
                 TempData["SuccessMessage"] = "Song updated successfully!";
                 return RedirectToAction(nameof(Details), new { id = model.Id });

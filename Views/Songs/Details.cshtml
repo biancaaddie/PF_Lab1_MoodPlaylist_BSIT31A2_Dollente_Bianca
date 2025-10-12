@@ -68,7 +68,23 @@
     </div>
 
     <div class="col-md-4">
-        @if (!string.IsNullOrEmpty(Model.YouTubeVideoId))
+        @if (!string.IsNullOrEmpty(Model.LocalMediaUrl))
+        {
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">In-app Playback</h5>
+                    @if (Model.IsVideo)
+                    {
+                        <video src="@Model.LocalMediaUrl" controls class="w-100" style="border-radius: 8px;"></video>
+                    }
+                    else
+                    {
+                        <audio src="@Model.LocalMediaUrl" controls class="w-100"></audio>
+                    }
+                </div>
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(Model.YouTubeVideoId))
         {
             <div class="card mb-4">
                 <div class="card-body">
@@ -81,6 +97,23 @@
                                 allowfullscreen>
                         </iframe>
                     </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Fallback</h5>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/@Model.FallbackYouTubeUrl.Split('=')[1]" 
+                                title="Fallback video" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                    <small class="text-muted">No local file or YouTube URL found; showing fallback.</small>
                 </div>
             </div>
         }

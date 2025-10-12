@@ -10,7 +10,7 @@ namespace MoodPlaylistGenerator.Services.Implementations
     /// SQLite implementation of IAuthService using Entity Framework Code-First approach.
     /// This implementation persists user data to a SQLite database.
     /// </summary>
-    public class SQLiteAuthService : IAuthService
+    public class SQLiteAuthService : MoodPlaylistGenerator.Services.Interfaces.IAuthService
     {
         private readonly ApplicationDbContext _context;
 

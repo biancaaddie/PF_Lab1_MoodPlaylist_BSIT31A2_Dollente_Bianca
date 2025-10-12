@@ -17,7 +17,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form asp-action="Edit" method="post">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
             <input asp-for="Id" type="hidden">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
             
@@ -39,10 +39,17 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="YouTubeUrl" class="form-label">YouTube URL *</label>
+                <label asp-for="YouTubeUrl" class="form-label">YouTube URL (optional)</label>
                 <input asp-for="YouTubeUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=...">
-                <div class="form-text">Paste the full YouTube URL for this song</div>
+                <div class="form-text">If a local media file is uploaded below, it will be preferred for in-app playback.</div>
                 <span asp-validation-for="YouTubeUrl" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MediaFile" class="form-label">Replace Local Media (audio/video)</label>
+                <input asp-for="MediaFile" type="file" class="form-control" accept="audio/*,video/*">
+                <div class="form-text">Leave empty to keep the existing file.</div>
+                <span asp-validation-for="MediaFile" class="text-danger"></span>
             </div>
 
             <div class="mb-4">

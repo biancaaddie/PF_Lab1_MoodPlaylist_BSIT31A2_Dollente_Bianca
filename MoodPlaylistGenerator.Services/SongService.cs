@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 using MoodPlaylistGenerator.Data;
 using MoodPlaylistGenerator.Data.Entities;
 
@@ -153,27 +154,68 @@ namespace MoodPlaylistGenerator.Services
             return "";
         }
         
-        // TODO: Implement method to create song with media file
-        /*
         public async Task<Song> CreateSongWithMediaAsync(string title, string artist, int userId, List<int> moodIds, IFormFile? mediaFile = null, string? youtubeUrl = null)
         {
-            // TODO: Create new Song object
-            // TODO: Handle media file upload if provided
-            // TODO: Set YouTube URL if no media file
-            // TODO: Save to database
-            // TODO: Add mood associations
+            var song = new Song
+            {
+                Title = title,
+                Artist = artist,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow
+            };
+            
+            // Handle media file upload
+            if (mediaFile != null && mediaFile.Length > 0)
+            {
+                // This will be handled by the controller since we need the MediaUploadService
+                // The controller will set these properties after calling this method
+                song.MediaType = MediaType.YouTube; // Will be updated by controller
+            }
+            else if (!string.IsNullOrEmpty(youtubeUrl))
+            {
+                song.YouTubeUrl = youtubeUrl;
+                song.MediaType = MediaType.YouTube;
+            }
+            
+            _context.Songs.Add(song);
+            await _context.SaveChangesAsync();
+            
+            // Add mood associations
+            if (moodIds.Any())
+            {
+                foreach (var moodId in moodIds)
+                {
+                    _context.SongMoods.Add(new SongMood
+                    {
+                        SongId = song.Id,
+                        MoodId = moodId
+                    });
+                }
+                await _context.SaveChangesAsync();
+            }
+            
+            return await GetSongByIdAsync(song.Id, userId) ?? song;
         }
-        */
         
-        // TODO: Implement method to get playable URL
-        /*
         public string GetPlayableUrl(Song song, IMediaUploadService mediaUploadService)
         {
-            // TODO: Check if local media file exists
-            // TODO: Return local file URL if available
-            // TODO: Fallback to YouTube URL
-            // TODO: Fallback to Rick Roll if nothing available
+            // Check if it's a local media file
+            if (song.MediaType != MediaType.YouTube && !string.IsNullOrEmpty(song.LocalFilePath))
+            {
+                // Check if file exists
+                if (mediaUploadService.FileExists(song.LocalFilePath))
+                {
+                    return mediaUploadService.GetMediaUrl(song.LocalFilePath);
+                }
+            }
+            
+            // Fallback to YouTube URL or Rick Roll
+            if (!string.IsNullOrEmpty(song.YouTubeUrl))
+            {
+                return song.YouTubeUrl;
+            }
+            
+            return mediaUploadService.GetFallbackYouTubeUrl();
         }
-        */
     }
 }

@@ -15,7 +15,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Add services
 // OPTION 1: Use SQLite implementation (Code-First with Entity Framework)
-builder.Services.AddScoped<IAuthService, SQLiteAuthService>();
+builder.Services.AddScoped<MoodPlaylistGenerator.Services.Interfaces.IAuthService, MoodPlaylistGenerator.Services.Implementations.SQLiteAuthService>();
 
 // OPTION 2: Use In-Memory implementation (List-based for learning/testing)
 // Uncomment the line below and comment out the line above to switch
