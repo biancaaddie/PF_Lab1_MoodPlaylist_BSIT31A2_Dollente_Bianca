@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MoodPlaylistGenerator.Data;
-using MoodPlaylistGenerator.Models;
+using MoodPlaylistGenerator.Data.Entities;
 
 namespace MoodPlaylistGenerator.Services
 {

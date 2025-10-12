@@ -3,47 +3,84 @@
     ViewData["Title"] = "Generate Playlist";
 }
 
-<div class="row justify-content-center">
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <div>
+        <h1 class="gradient-text display-5 mb-2">🎧 Generate New Playlist</h1>
+        <p class="text-muted mb-0">Create a personalized musical journey based on your mood</p>
+    </div>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to Playlists
+    </a>
+</div>
+
+<div class="row">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3>🎲 Generate New Playlist</h3>
-                <p class="mb-0 text-muted">Create a randomized playlist based on your mood</p>
+        <div class="card" style="background: linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);">
+            <div class="card-header" style="background: var(--gradient-primary); border-radius: 16px 16px 0 0;">
+                <h4 class="text-white mb-0">
+                    <i class="fas fa-sliders-h me-2"></i>Playlist Configuration
+                </h4>
             </div>
-            <div class="card-body">
-                <form asp-action="Generate">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div class="card-body p-4">
+                <form asp-action="Generate" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
                     
-                    <div class="mb-4">
-                        <label asp-for="SelectedMoodId" class="form-label">Select Mood</label>
-                        <div class="row">
+                    <div class="mb-5">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-heart me-2" style="color: var(--accent-pink);"></i>
+                            <label asp-for="SelectedMoodId" class="form-label h5 mb-0">Select Your Mood *</label>
+                        </div>
+                        <div class="form-text mb-4" style="color: var(--gray-600); font-size: 1rem;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Choose the perfect mood for your playlist. Songs will be carefully curated from your selection.
+                        </div>
+                        <div class="row g-3">
                             @foreach (var mood in Model.AvailableMoods)
                             {
                                 var songCount = Model.MoodSongCounts.ContainsKey(mood.Id) ? Model.MoodSongCounts[mood.Id] : 0;
-                                <div class="col-md-6 mb-3">
+                                var isDisabled = songCount == 0;
+                                
+                                <div class="col-md-6 col-lg-4">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" 
+                                        <input class="form-check-input d-none" type="radio" 
                                                name="SelectedMoodId" value="@mood.Id" 
-                                               id="mood_@mood.Id" 
-                                               @(songCount == 0 ? "disabled" : "") />
-                                        <label class="form-check-label w-100" for="mood_@mood.Id">
-                                            <div class="card @(songCount == 0 ? "text-muted" : "")">
-                                                <div class="card-body p-3">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <span class="badge rounded-pill me-2" 
-                                                                  style="background-color: @mood.Color; color: white;">
-                                                                @mood.Name
-                                                            </span>
-                                                            <br>
-                                                            <small class="text-muted">@mood.Description</small>
-                                                        </div>
-                                                        <div class="text-end">
-                                                            <strong>@songCount</strong>
-                                                            <br>
-                                                            <small class="text-muted">songs</small>
+                                               id="mood_@mood.Id"
+                                               @(Model.SelectedMoodId == mood.Id ? "checked" : "")
+                                               @(isDisabled ? "disabled" : "")>
+                                        <label class="form-check-label w-100" for="mood_@mood.Id" style="cursor: @(isDisabled ? "not-allowed" : "pointer");">
+                                            <div class="mood-card card h-100 @(isDisabled ? "disabled" : "")" 
+                                                 style="border: 3px solid transparent; transition: all 0.3s ease; @(isDisabled ? "opacity: 0.4;" : "")">
+                                                <div class="card-body text-center p-3">
+                                                    <!-- Mood Icon/Circle -->
+                                                    <div class="mb-3">
+                                                        <div class="mood-icon rounded-circle mx-auto d-flex align-items-center justify-content-center"
+                                                             style="width: 60px; height: 60px; background: linear-gradient(135deg, @mood.Color 0%, rgba(@mood.Color, 0.7) 100%);">
+                                                            <i class="fas fa-music text-white fa-lg"></i>
                                                         </div>
                                                     </div>
+                                                    
+                                                    <!-- Mood Name -->
+                                                    <h6 class="fw-bold mb-2" style="color: @mood.Color;">@mood.Name</h6>
+                                                    
+                                                    <!-- Song Count -->
+                                                    <div class="mb-2">
+                                                        <span class="badge" style="background: linear-gradient(135deg, @mood.Color 0%, rgba(@mood.Color, 0.8) 100%); color: white; font-size: 0.75rem;">
+                                                            @songCount song@(songCount == 1 ? "" : "s")
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    @if (isDisabled)
+                                                    {
+                                                        <small class="text-danger">
+                                                            <i class="fas fa-exclamation-circle me-1"></i>No songs available
+                                                        </small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-success">
+                                                            <i class="fas fa-check-circle me-1"></i>Ready to use
+                                                        </small>
+                                                    }
                                                 </div>
                                             </div>
                                         </label>
@@ -51,81 +88,179 @@
                                 </div>
                             }
                         </div>
-                        @if (!Model.AvailableMoods.Any() || Model.MoodSongCounts.Values.Sum() == 0)
-                        {
-                            <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                You need to add some songs first before generating playlists.
-                                <a href="@Url.Action("Index", "Songs")" class="alert-link">Add songs now</a>
-                            </div>
-                        }
                         <span asp-validation-for="SelectedMoodId" class="text-danger"></span>
                     </div>
 
-                    <div class="row mb-3">
+                    <div class="row g-4">
                         <div class="col-md-6">
-                            <label asp-for="SongCount" class="form-label">Number of Songs</label>
-                            <input asp-for="SongCount" class="form-control" type="number" min="1" max="50" />
-                            <div class="form-text">Choose between 1 and 50 songs</div>
-                            <span asp-validation-for="SongCount" class="text-danger"></span>
+                            <div class="form-group">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-list-ol me-2" style="color: var(--accent-teal);"></i>
+                                    <label asp-for="SongCount" class="form-label h6 mb-0">Number of Songs *</label>
+                                </div>
+                                <div class="input-group" style="border-radius: 12px; overflow: hidden;">
+                                    <span class="input-group-text" style="background: var(--gradient-secondary); border: none; color: white;">
+                                        <i class="fas fa-music"></i>
+                                    </span>
+                                    <input asp-for="SongCount" class="form-control" type="number" min="1" max="50" 
+                                           style="border-left: none; font-size: 1.1rem; font-weight: 600;">
+                                </div>
+                                <div class="form-text mt-2">
+                                    <i class="fas fa-info-circle me-1" style="color: var(--accent-teal);"></i>
+                                    Choose between 1 and 50 songs for your perfect playlist
+                                </div>
+                                <span asp-validation-for="SongCount" class="text-danger"></span>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <label asp-for="PlaylistName" class="form-label">Playlist Name (Optional)</label>
-                            <input asp-for="PlaylistName" class="form-control" placeholder="Leave empty for auto-generated name" />
-                            <span asp-validation-for="PlaylistName" class="text-danger"></span>
+                            <div class="form-group">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-tag me-2" style="color: var(--accent-orange);"></i>
+                                    <label asp-for="PlaylistName" class="form-label h6 mb-0">Playlist Name (Optional)</label>
+                                </div>
+                                <div class="input-group" style="border-radius: 12px; overflow: hidden;">
+                                    <span class="input-group-text" style="background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-pink) 100%); border: none; color: white;">
+                                        <i class="fas fa-edit"></i>
+                                    </span>
+                                    <input asp-for="PlaylistName" class="form-control" placeholder="My Awesome Playlist" 
+                                           style="border-left: none; font-size: 1.1rem;">
+                                </div>
+                                <div class="form-text mt-2">
+                                    <i class="fas fa-magic me-1" style="color: var(--accent-orange);"></i>
+                                    Leave empty for an auto-generated name based on your mood
+                                </div>
+                                <span asp-validation-for="PlaylistName" class="text-danger"></span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-between">
-                        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary" 
-                                @(Model.MoodSongCounts.Values.Sum() == 0 ? "disabled" : "")>
-                            <i class="fas fa-magic"></i> Generate Playlist
-                        </button>
+                    <div class="d-flex justify-content-between align-items-center mt-5">
+                        <div class="text-muted">
+                            <i class="fas fa-lightbulb me-2" style="color: var(--accent-orange);"></i>
+                            <small>Your playlist will be generated based on your selected preferences</small>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5" 
+                                    style="background: var(--gradient-primary); border: none; font-weight: 600; font-size: 1.1rem;">
+                                <i class="fas fa-magic me-2"></i> Generate My Playlist
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
+    </div>
 
-        @if (Model.MoodSongCounts.Any())
-        {
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5>📊 Your Music Library</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        @foreach (var mood in Model.AvailableMoods)
-                        {
-                            var count = Model.MoodSongCounts.ContainsKey(mood.Id) ? Model.MoodSongCounts[mood.Id] : 0;
-                            <div class="col-md-6 col-lg-4 mb-2">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge rounded-pill me-2" 
-                                          style="background-color: @mood.Color; color: white;">
-                                        @mood.Name
-                                    </span>
-                                    <span class="text-muted">@count songs</span>
-                                </div>
-                            </div>
-                        }
+    <div class="col-md-4">
+        <!-- Tips Card -->
+        <div class="card" style="background: linear-gradient(145deg, rgba(20, 184, 166, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%); border: 2px solid var(--accent-teal);">
+            <div class="card-header" style="background: var(--gradient-secondary); border-radius: 16px 16px 0 0;">
+                <h5 class="text-white mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Pro Tips
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="tip-item mb-3 p-3 rounded" style="background: rgba(255, 255, 255, 0.7);">
+                    <div class="d-flex align-items-start">
+                        <div class="rounded-circle me-3" style="width: 40px; height: 40px; background: var(--accent-orange); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-shuffle text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1" style="color: var(--gray-700);">Smart Selection</h6>
+                            <small class="text-muted">Songs are intelligently picked from your chosen mood for the perfect mix</small>
+                        </div>
                     </div>
-                    <div class="mt-3">
-                        <strong>Total: @Model.MoodSongCounts.Values.Sum() songs</strong>
+                </div>
+                
+                <div class="tip-item mb-3 p-3 rounded" style="background: rgba(255, 255, 255, 0.7);">
+                    <div class="d-flex align-items-start">
+                        <div class="rounded-circle me-3" style="width: 40px; height: 40px; background: var(--accent-indigo); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-dice text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1" style="color: var(--gray-700);">Always Unique</h6>
+                            <small class="text-muted">Each playlist generation creates a fresh, unique collection</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tip-item p-3 rounded" style="background: rgba(255, 255, 255, 0.7);">
+                    <div class="d-flex align-items-start">
+                        <div class="rounded-circle me-3" style="width: 40px; height: 40px; background: var(--accent-pink); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-edit text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1" style="color: var(--gray-700);">Fully Customizable</h6>
+                            <small class="text-muted">Rename and modify your playlists anytime after creation</small>
+                        </div>
                     </div>
                 </div>
             </div>
-        }
+        </div>
+
+        <!-- Library Overview Card -->
+        <div class="card mt-4" style="background: linear-gradient(145deg, rgba(236, 72, 153, 0.05) 0%, rgba(245, 158, 11, 0.05) 100%); border: 2px solid var(--accent-pink);">
+            <div class="card-header" style="background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-orange) 100%); border-radius: 16px 16px 0 0;">
+                <h6 class="text-white mb-0">
+                    <i class="fas fa-library me-2"></i>Your Music Library
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.MoodSongCounts.Any())
+                {
+                    @foreach (var moodCount in Model.MoodSongCounts.OrderByDescending(mc => mc.Value))
+                    {
+                        var mood = Model.AvailableMoods.FirstOrDefault(m => m.Id == moodCount.Key);
+                        if (mood != null)
+                        {
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded" style="background: rgba(255, 255, 255, 0.6);">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: @mood.Color;"></div>
+                                    <small class="fw-semibold">@mood.Name</small>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge rounded-pill" style="background: @mood.Color; color: white; font-size: 0.7rem;">@moodCount.Value</span>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-3">
+                        <i class="fas fa-music-slash text-muted fa-2x mb-2"></i>
+                        <p class="text-muted small mb-0">No songs in your library yet</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Add Songs Card -->
+        <div class="card mt-4">
+            <div class="card-body text-center" style="background: var(--gradient-primary); color: white; border-radius: 16px;">
+                <i class="fas fa-plus-circle fa-2x mb-3"></i>
+                <h6 class="mb-2">Expand Your Collection</h6>
+                <p class="small mb-3 opacity-90">Add more songs to unlock better playlist generation</p>
+                <a href="@Url.Action("Create", "Songs")" class="btn btn-light btn-sm fw-semibold">
+                    <i class="fas fa-plus me-1"></i> Add Songs Now
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
     <script>
-        // Auto-select mood radio when clicking anywhere on the card
-        document.querySelectorAll('.form-check-label').forEach(label => {
-            label.addEventListener('click', function() {
-                const radio = this.querySelector('input[type="radio"]');
-                if (radio && !radio.disabled) {
+        // Auto-select mood when clicking on card
+        document.querySelectorAll('.form-check-label .card').forEach(function(card) {
+            card.addEventListener('click', function() {
+                const radio = card.closest('.form-check').querySelector('input[type="radio"]');
+                if (!radio.disabled) {
                     radio.checked = true;
                 }
             });

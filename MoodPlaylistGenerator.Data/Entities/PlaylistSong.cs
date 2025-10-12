@@ -1,4 +1,4 @@
-namespace MoodPlaylistGenerator.Models
+namespace MoodPlaylistGenerator.Data.Entities
 {
     public class PlaylistSong
     {

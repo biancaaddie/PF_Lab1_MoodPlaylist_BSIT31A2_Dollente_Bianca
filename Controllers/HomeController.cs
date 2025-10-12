@@ -46,6 +46,33 @@ public class HomeController : Controller
         return View();
     }
 
+    public async Task<IActionResult> Dashboard()
+    {
+        if (User.Identity?.IsAuthenticated == true && _songService != null && _playlistService != null)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            var allSongs = await _songService.GetUserSongsAsync(userId);
+            var allPlaylists = await _playlistService.GetUserPlaylistsAsync(userId);
+            var moods = await _songService.GetAllMoodsAsync();
+            var songCounts = await _playlistService.GetMoodSongCountsAsync(userId);
+
+            var dashboardModel = new DashboardViewModel
+            {
+                RecentSongs = allSongs.Take(5).ToList(),
+                RecentPlaylists = allPlaylists.Take(5).ToList(),
+                Moods = moods,
+                MoodSongCounts = songCounts,
+                TotalSongs = allSongs.Count,
+                TotalPlaylists = allPlaylists.Count
+            };
+
+            return View(dashboardModel);
+        }
+
+        // If user is not authenticated, redirect to login
+        return RedirectToAction("Login", "Account");
+    }
+
     public IActionResult Privacy()
     {
         return View();

@@ -3,77 +3,83 @@
     ViewData["Title"] = "Edit Song";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3>✏️ Edit Song</h3>
-            </div>
-            <div class="card-body">
-                <form asp-action="Edit">
-                    <input asp-for="Id" type="hidden" />
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label asp-for="Title" class="form-label"></label>
-                                <input asp-for="Title" class="form-control" placeholder="Enter song title" />
-                                <span asp-validation-for="Title" class="text-danger"></span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label asp-for="Artist" class="form-label"></label>
-                                <input asp-for="Artist" class="form-control" placeholder="Enter artist name" />
-                                <span asp-validation-for="Artist" class="text-danger"></span>
-                            </div>
-                        </div>
-                    </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>🎵 Edit Song</h2>
+    <div class="btn-group">
+        <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-info">
+            <i class="fas fa-eye"></i> View
+        </a>
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Songs
+        </a>
+    </div>
+</div>
 
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <input asp-for="Id" type="hidden">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            
+            <div class="row">
+                <div class="col-md-6">
                     <div class="mb-3">
-                        <label asp-for="YouTubeUrl" class="form-label"></label>
-                        <input asp-for="YouTubeUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=..." />
-                        <div class="form-text">Paste the full YouTube URL for this song</div>
-                        <span asp-validation-for="YouTubeUrl" class="text-danger"></span>
+                        <label asp-for="Title" class="form-label">Song Title *</label>
+                        <input asp-for="Title" class="form-control" placeholder="Enter song title">
+                        <span asp-validation-for="Title" class="text-danger"></span>
                     </div>
-
-                    <div class="mb-4">
-                        <label asp-for="SelectedMoodIds" class="form-label">Select Moods</label>
-                        <div class="row">
-                            @foreach (var mood in Model.AvailableMoods)
-                            {
-                                <div class="col-md-4 col-sm-6 mb-2">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" 
-                                               name="SelectedMoodIds" value="@mood.Id" 
-                                               id="mood_@mood.Id"
-                                               @(Model.SelectedMoodIds.Contains(mood.Id) ? "checked" : "") />
-                                        <label class="form-check-label" for="mood_@mood.Id">
-                                            <span class="badge rounded-pill me-2" style="background-color: @mood.Color; color: white;">
-                                                @mood.Name
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                        <div class="form-text">Select one or more moods that match this song</div>
-                        <span asp-validation-for="SelectedMoodIds" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="Artist" class="form-label">Artist *</label>
+                        <input asp-for="Artist" class="form-control" placeholder="Enter artist name">
+                        <span asp-validation-for="Artist" class="text-danger"></span>
                     </div>
-
-                    <div class="d-flex justify-content-between">
-                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Save Changes
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
-        </div>
+
+            <div class="mb-3">
+                <label asp-for="YouTubeUrl" class="form-label">YouTube URL *</label>
+                <input asp-for="YouTubeUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=...">
+                <div class="form-text">Paste the full YouTube URL for this song</div>
+                <span asp-validation-for="YouTubeUrl" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Moods 🎭</label>
+                <div class="form-text mb-2">Select one or more moods that match this song</div>
+                <div class="row">
+                    @for (int i = 0; i < Model.AvailableMoods.Count; i++)
+                    {
+                        var mood = Model.AvailableMoods[i];
+                        <div class="col-md-4 col-sm-6 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="SelectedMoodIds" value="@mood.Id" 
+                                       id="mood_@mood.Id" 
+                                       @(Model.SelectedMoodIds.Contains(mood.Id) ? "checked" : "")>
+                                <label class="form-check-label" for="mood_@mood.Id">
+                                    <span class="badge rounded-pill" style="background-color: @mood.Color; color: white;">
+                                        @mood.Name
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <span asp-validation-for="SelectedMoodIds" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

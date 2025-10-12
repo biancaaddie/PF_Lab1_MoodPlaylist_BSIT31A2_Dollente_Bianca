@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MoodPlaylistGenerator.Services.Interfaces;
 using MoodPlaylistGenerator.Services;
 using MoodPlaylistGenerator.Data;
 
@@ -9,13 +10,13 @@ namespace MoodPlaylistGenerator.Controllers
     public class TestController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly AuthService _authService;
+        private readonly IAuthService _authService;
         private readonly SongService _songService;
         private readonly PlaylistService _playlistService;
 
         public TestController(
             ApplicationDbContext context,
-            AuthService authService,
+            IAuthService authService,
             SongService songService,
             PlaylistService playlistService)
         {

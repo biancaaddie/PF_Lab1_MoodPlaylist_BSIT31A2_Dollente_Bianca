@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MoodPlaylistGenerator.Models
+namespace MoodPlaylistGenerator.Data.Entities
 {
     public class Mood
     {

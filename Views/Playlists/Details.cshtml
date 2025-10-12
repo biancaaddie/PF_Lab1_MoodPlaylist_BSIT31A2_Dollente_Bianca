@@ -3,389 +3,173 @@
     ViewData["Title"] = Model.Playlist.Name;
 }
 
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>🎧 @Model.Playlist.Name</h2>
+        <div class="mt-2">
+            <span class="badge rounded-pill fs-6" style="background-color: @Model.Playlist.Mood.Color; color: white;">
+                @Model.Playlist.Mood.Name
+            </span>
+            <span class="text-muted ms-2">
+                <i class="fas fa-music"></i> @Model.Songs.Count songs
+            </span>
+        </div>
+    </div>
+    <div class="btn-group">
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Playlists
+        </a>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div>
-                    <h3>🎧 @Model.Playlist.Name</h3>
-                    <span class="badge rounded-pill me-2" 
-                          style="background-color: @Model.Playlist.Mood?.Color; color: white;">
-                        @Model.Playlist.Mood?.Name
-                    </span>
-                </div>
-                @if (Model.CanEdit)
-                {
-                    <div class="btn-group">
-                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editNameModal">
-                            <i class="fas fa-edit"></i> Rename
-                        </button>
-                        <form method="post" asp-action="Delete" asp-route-id="@Model.Playlist.Id" 
-                              style="display: inline;" 
-                              onsubmit="return confirm('Are you sure you want to delete this playlist?');">
-                            <button type="submit" class="btn btn-outline-danger btn-sm">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </form>
-                    </div>
-                }
-            </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-sm-3"><strong>Generated:</strong></div>
-                    <div class="col-sm-9">@Model.Playlist.GeneratedAt.ToString("MMMM dd, yyyy 'at' h:mm tt")</div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-3"><strong>Mood:</strong></div>
-                    <div class="col-sm-9">
-                        <span class="badge rounded-pill me-2" 
-                              style="background-color: @Model.Playlist.Mood?.Color; color: white;">
-                            @Model.Playlist.Mood?.Name
-                        </span>
-                        <br>
-                        <small class="text-muted">@Model.Playlist.Mood?.Description</small>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-sm-3"><strong>Total Songs:</strong></div>
-                    <div class="col-sm-9">@Model.Songs.Count songs</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Songs List -->
         @if (Model.Songs.Any())
         {
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5>🎵 Songs in this Playlist</h5>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Playlist Songs</h5>
+                    <small class="text-muted">@Model.Songs.Count songs • Created @Model.Playlist.GeneratedAt.ToString("MMM dd, yyyy")</small>
                 </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        @foreach (var playlistSong in Model.Songs.OrderBy(s => s.Position))
-                        {
-                            <div class="list-group-item" id="song-@playlistSong.Position">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <span class="badge bg-secondary rounded-circle me-3" id="badge-@playlistSong.Position">@playlistSong.Position</span>
+                <div class="list-group list-group-flush">
+                    @foreach (var playlistSong in Model.Songs)
+                    {
+                        <div class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col-1 text-center">
+                                    <span class="text-muted fw-bold">@playlistSong.Position</span>
+                                </div>
+                                <div class="col-7">
+                                    <div class="d-flex justify-content-between align-items-start">
                                         <div>
                                             <h6 class="mb-1">@playlistSong.Song.Title</h6>
                                             <p class="mb-1 text-muted">by @playlistSong.Song.Artist</p>
-                                            <div>
+                                            <div class="mt-1">
                                                 @foreach (var songMood in playlistSong.Song.SongMoods)
                                                 {
-                                                    <span class="badge rounded-pill me-1" 
-                                                          style="background-color: @songMood.Mood.Color; color: white; font-size: 0.75em;">
+                                                    <span class="badge badge-sm rounded-pill me-1" 
+                                                          style="background-color: @songMood.Mood.Color; color: white; font-size: 0.7em;">
                                                         @songMood.Mood.Name
                                                     </span>
                                                 }
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="btn-group-vertical">
-                                        <button class="btn btn-outline-primary btn-sm" 
-                                                onclick="playSong('@Html.Raw(playlistSong.Song.YouTubeUrl)', '@Html.Raw(playlistSong.Song.Title)', '@Html.Raw(playlistSong.Song.Artist)', @playlistSong.Position)">
-                                            <i class="fas fa-play"></i> Play
-                                        </button>
-                                        <a href="@playlistSong.Song.YouTubeUrl" target="_blank" 
-                                           class="btn btn-outline-secondary btn-sm">
-                                            <i class="fas fa-external-link-alt"></i> YouTube
-                                        </a>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <div class="btn-group btn-group-sm">
                                         <a href="@Url.Action("Details", "Songs", new { id = playlistSong.Song.Id })" 
-                                           class="btn btn-outline-secondary btn-sm">
-                                            <i class="fas fa-info"></i> Details
+                                           class="btn btn-outline-info btn-sm">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <a href="@playlistSong.Song.YouTubeUrl" target="_blank" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fab fa-youtube"></i> Play
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                        }
-                    </div>
+                        </div>
+                    }
                 </div>
             </div>
         }
-    </div>
-    
-    <div class="col-md-4">
-        <!-- YouTube Player -->
-        <div class="card" id="playerCard" style="display: none;">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>🎵 Now Playing</h5>
-                <button class="btn btn-sm btn-outline-secondary" onclick="closePlayer()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="card-body p-0">
-                <div class="ratio ratio-16x9">
-                    <iframe id="youtubePlayer" 
-                            src="" 
-                            title="YouTube video player" 
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                            allowfullscreen>
-                    </iframe>
-                </div>
-                <div class="p-3">
-                    <h6 id="currentSongTitle" class="mb-1"></h6>
-                    <p id="currentSongArtist" class="text-muted mb-2"></p>
-                    <div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-outline-secondary btn-sm" onclick="playPrevious()" id="prevBtn">
-                            <i class="fas fa-step-backward"></i>
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="playNext()" id="nextBtn">
-                            <i class="fas fa-step-forward"></i>
-                        </button>
-                        <button class="btn btn-outline-danger btn-sm" onclick="closePlayer()">
-                            <i class="fas fa-stop"></i>
-                        </button>
-                    </div>
-                    <div class="mt-2 text-center">
-                        <small class="text-muted" id="songPosition"></small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="card" id="quickActionsCard">
-            <div class="card-header">
-                <h5>🎯 Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="@Url.Action("Generate")" class="btn btn-primary">
-                        <i class="fas fa-magic"></i> Generate Another Playlist
-                    </a>
-                    <a href="@Url.Action("Index", "Songs")" class="btn btn-outline-secondary">
-                        <i class="fas fa-music"></i> View All Songs
-                    </a>
-                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
-                        <i class="fas fa-list"></i> Back to Playlists
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mood Info -->
-        @if (Model.Playlist.Mood != null)
+        else
         {
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5>🎭 About This Mood</h5>
-                </div>
-                <div class="card-body">
-                    <div class="text-center mb-3">
-                        <span class="badge rounded-pill" 
-                              style="background-color: @Model.Playlist.Mood.Color; color: white; font-size: 1.2em; padding: 0.5em 1em;">
-                            @Model.Playlist.Mood.Name
-                        </span>
-                    </div>
-                    <p class="text-muted">@Model.Playlist.Mood.Description</p>
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-music fa-3x text-muted mb-3"></i>
+                    <h5>No songs in this playlist</h5>
+                    <p class="text-muted">This playlist appears to be empty.</p>
                 </div>
             </div>
         }
     </div>
-</div>
 
-@section Scripts {
-    <script>
-        function playSong(youtubeUrl, title, artist, position = null) {
-            // Extract video ID from YouTube URL
-            const videoId = extractYouTubeVideoId(youtubeUrl);
-            
-            if (videoId) {
-                // Update current song index if position is provided
-                if (position !== null) {
-                    currentSongIndex = currentPlaylistSongs.findIndex(s => s.position === position);
-                } else {
-                    // Find the song in playlist by URL
-                    currentSongIndex = currentPlaylistSongs.findIndex(s => s.url === youtubeUrl);
-                }
-                
-                // Update player iframe source
-                const iframe = document.getElementById('youtubePlayer');
-                iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
-                
-                // Update song info
-                document.getElementById('currentSongTitle').textContent = title;
-                document.getElementById('currentSongArtist').textContent = `by ${artist}`;
-                
-                // Update position info
-                const positionText = currentSongIndex >= 0 ? 
-                    `Song ${currentSongIndex + 1} of ${currentPlaylistSongs.length}` : '';
-                document.getElementById('songPosition').textContent = positionText;
-                
-                // Update button states
-                updatePlayerButtons();
-                
-                // Highlight current song
-                highlightCurrentSong();
-                
-                // Show player card
-                document.getElementById('playerCard').style.display = 'block';
-                document.getElementById('quickActionsCard').style.marginTop = '1rem';
-                
-                // Scroll to player
-                document.getElementById('playerCard').scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'center' 
-                });
-            } else {
-                alert('Invalid YouTube URL');
-            }
-        }
-        
-        function closePlayer() {
-            // Hide player and clear iframe
-            document.getElementById('playerCard').style.display = 'none';
-            document.getElementById('youtubePlayer').src = '';
-            document.getElementById('quickActionsCard').style.marginTop = '0';
-            
-            // Reset current song tracking
-            currentSongIndex = -1;
-            
-            // Remove highlights
-            highlightCurrentSong();
-            
-            // Reset all badges to show position numbers
-            document.querySelectorAll('[id^="badge-"]').forEach(badge => {
-                const position = badge.id.split('-')[1];
-                badge.innerHTML = position;
-            });
-        }
-        
-        function extractYouTubeVideoId(url) {
-            try {
-                const urlObj = new URL(url);
-                
-                // Handle youtu.be format
-                if (urlObj.hostname === 'youtu.be') {
-                    return urlObj.pathname.slice(1);
-                }
-                
-                // Handle youtube.com format
-                if (urlObj.hostname.includes('youtube.com')) {
-                    return urlObj.searchParams.get('v');
-                }
-                
-                return null;
-            } catch (e) {
-                return null;
-            }
-        }
-        
-        // Add playlist control functionality
-        let currentPlaylistSongs = [];
-        let currentSongIndex = -1;
-        
-        // Initialize playlist data
-        document.addEventListener('DOMContentLoaded', function() {
-            // Extract playlist data from the page
-            @{var songList = Model.Songs.OrderBy(s => s.Position).ToList();}
-            currentPlaylistSongs = [
-                @foreach(var song in songList)
-                {
-                    @:{
-                        @:url: '@Html.Raw(song.Song.YouTubeUrl)',
-                        @:title: '@Html.Raw(song.Song.Title)',
-                        @:artist: '@Html.Raw(song.Song.Artist)',
-                        @:position: @song.Position
-                    @:}@(songList.LastOrDefault() != song ? "," : "")
-                }
-            ];
-        });
-        
-        function updatePlayerButtons() {
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            
-            // Disable/enable buttons based on position
-            prevBtn.disabled = currentSongIndex <= 0;
-            nextBtn.disabled = currentSongIndex >= currentPlaylistSongs.length - 1;
-            
-            // Update button styling
-            if (prevBtn.disabled) {
-                prevBtn.classList.add('opacity-50');
-            } else {
-                prevBtn.classList.remove('opacity-50');
-            }
-            
-            if (nextBtn.disabled) {
-                nextBtn.classList.add('opacity-50');
-            } else {
-                nextBtn.classList.remove('opacity-50');
-            }
-        }
-        
-        function highlightCurrentSong() {
-            // Remove previous highlights
-            document.querySelectorAll('.list-group-item').forEach(item => {
-                item.classList.remove('list-group-item-primary', 'border-primary');
-            });
-            
-            document.querySelectorAll('[id^="badge-"]').forEach(badge => {
-                badge.classList.remove('bg-primary');
-                badge.classList.add('bg-secondary');
-            });
-            
-            // Highlight current song if playing
-            if (currentSongIndex >= 0) {
-                const currentSong = currentPlaylistSongs[currentSongIndex];
-                const songElement = document.getElementById(`song-${currentSong.position}`);
-                const badgeElement = document.getElementById(`badge-${currentSong.position}`);
-                
-                if (songElement && badgeElement) {
-                    songElement.classList.add('list-group-item-primary', 'border-primary');
-                    badgeElement.classList.remove('bg-secondary');
-                    badgeElement.classList.add('bg-primary');
-                    
-                    // Add playing icon
-                    badgeElement.innerHTML = '<i class="fas fa-play"></i>';
-                }
-            }
-        }
-        
-        function playNext() {
-            if (currentSongIndex < currentPlaylistSongs.length - 1) {
-                currentSongIndex++;
-                const song = currentPlaylistSongs[currentSongIndex];
-                playSong(song.url, song.title, song.artist, song.position);
-            }
-        }
-        
-        function playPrevious() {
-            if (currentSongIndex > 0) {
-                currentSongIndex--;
-                const song = currentPlaylistSongs[currentSongIndex];
-                playSong(song.url, song.title, song.artist, song.position);
-            }
-        }
-    </script>
-}
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Playlist Info</h5>
+                <table class="table table-borderless table-sm">
+                    <tbody>
+                        <tr>
+                            <td><strong>Name:</strong></td>
+                            <td>@Model.Playlist.Name</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mood:</strong></td>
+                            <td>
+                                <span class="badge rounded-pill" style="background-color: @Model.Playlist.Mood.Color; color: white;">
+                                    @Model.Playlist.Mood.Name
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Songs:</strong></td>
+                            <td>@Model.Songs.Count</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Created:</strong></td>
+                            <td>@Model.Playlist.GeneratedAt.ToString("MMM dd, yyyy")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-<!-- Edit Name Modal -->
-<div class="modal fade" id="editNameModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form asp-action="UpdateName">
-                <div class="modal-header">
-                    <h5 class="modal-title">Rename Playlist</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        @if (Model.CanEdit)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Edit Playlist</h5>
+                    <form method="post" action="@Url.Action("UpdateName")" class="mb-3">
+                        <input type="hidden" name="PlaylistId" value="@Model.Playlist.Id" />
+                        <div class="input-group">
+                            <input type="text" name="Name" class="form-control form-control-sm" 
+                                   value="@Model.Playlist.Name" placeholder="Playlist name" required />
+                            <button type="submit" class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-save"></i> Rename
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <div class="modal-body">
-                    <input type="hidden" name="PlaylistId" value="@Model.Playlist.Id" />
-                    <div class="mb-3">
-                        <label for="playlistName" class="form-label">Playlist Name</label>
-                        <input type="text" class="form-control" id="playlistName" name="Name" 
-                               value="@Model.Playlist.Name" required maxlength="100" />
+            </div>
+        }
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Actions</h5>
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Generate")" class="btn btn-primary btn-sm">
+                        <i class="fas fa-magic"></i> Generate New Playlist
+                    </a>
+                    <a href="@Url.Action("Create", "Songs")" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-plus"></i> Add More Songs
+                    </a>
+                    <form method="post" action="@Url.Action("Delete", new { id = Model.Playlist.Id })" 
+                          onsubmit="return confirm('Are you sure you want to delete this playlist? This action cannot be undone.');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                            <i class="fas fa-trash"></i> Delete Playlist
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Songs.Any())
+        {
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Play</h5>
+                    <p class="text-muted small">Click on any song above to view details or watch on YouTube.</p>
+                    <div class="text-center">
+                        <a href="@Model.Songs.FirstOrDefault()?.Song.YouTubeUrl" target="_blank" 
+                           class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-play"></i> Play First Song
+                        </a>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                </div>
-            </form>
-        </div>
+            </div>
+        }
     </div>
 </div>

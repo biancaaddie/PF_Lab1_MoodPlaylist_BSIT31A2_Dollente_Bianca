@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MoodPlaylistGenerator.Data;
-using MoodPlaylistGenerator.Services;
+using MoodPlaylistGenerator.Services.Interfaces;
+using MoodPlaylistGenerator.Services.Implementations;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,12 +14,18 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=MoodPlaylist.db"));
 
 // Add services
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<SongService>();
+// OPTION 1: Use SQLite implementation (Code-First with Entity Framework)
+builder.Services.AddScoped<IAuthService, SQLiteAuthService>();
 
-// TODO: Register MediaUploadService
-// builder.Services.AddScoped<IMediaUploadService, MediaUploadService>();
-builder.Services.AddScoped<PlaylistService>();
+// OPTION 2: Use In-Memory implementation (List-based for learning/testing)
+// Uncomment the line below and comment out the line above to switch
+// builder.Services.AddSingleton<IAuthService, InMemoryAuthService>();
+
+builder.Services.AddScoped<MoodPlaylistGenerator.Services.SongService>();
+builder.Services.AddScoped<MoodPlaylistGenerator.Services.PlaylistService>();
+
+// Register MediaUploadService for local media functionality
+builder.Services.AddScoped<MoodPlaylistGenerator.Services.IMediaUploadService, MoodPlaylistGenerator.Services.MediaUploadService>();
 
 // Add authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -31,6 +38,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 var app = builder.Build();
+
+// Ensure database is created and migrated
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    context.Database.EnsureCreated();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
